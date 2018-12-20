@@ -7,6 +7,7 @@ import {StyleSheet} from 'react-native';
 import {
   ViroARScene,
   ViroConstants,
+  ViroParticleEmitter,
   ViroText,
   ViroMaterials,
   ViroBox,
@@ -39,22 +40,12 @@ export default class HelloWorldSceneAR extends Component {
 
     return (
       <ViroARScene onTrackingUpdated={this._onInitialized} >
-
-        <ViroAmbientLight color="#ffffff" />
-        <Viro3DObject source={require('./res/egg_sandwich/scene.gltf')}
-           resources={[require('./res/egg_sandwich/scene.bin'),
-                       require('./res/egg_sandwich/textures/Material_baseColor.png'),
-                       require('./res/egg_sandwich/textures/Material.000_baseColor.png'),
-                       require('./res/egg_sandwich/textures/Material.000_normal.png'),
-                       require('./res/egg_sandwich/textures/Material.001_baseColor.png')
-                     ]}
+        <Viro3DObject source={require('./res/doctor_mario/scene.gltf')}
            type="GLTF"
-           position={[0, 0, -4]}
-           rotation={[-180,0,0]}
-           scale={[0.5, 0.5, 0.5]}
+           position={[0, -5, -10]}
+           rotation={[0,0,0]}
+           scale={[0.3, 0.3, 0.3]}
         />
-
-
       </ViroARScene>
     );
   }
@@ -70,6 +61,14 @@ export default class HelloWorldSceneAR extends Component {
   //    type="GLTF"
   //    position={[0, 0, -4]}
   //    scale={[0.5, 0.5, 0.5]}
+  // />
+
+  //DOCTOR MARIO
+  // <Viro3DObject source={require('./res/doctor_mario/scene.gltf')}
+  //    type="GLTF"
+  //    position={[0, -5, -10]}
+  //    rotation={[0,0,0]}
+  //    scale={[0.3, 0.3, 0.3]}
   // />
 
   _onInitialized(state, reason) {
