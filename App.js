@@ -49,6 +49,7 @@ export default class ViroSample extends Component {
     this.state = {
       latitude: null,
       longitude: null,
+      heading: null,
       error: null,
 
       navigatorType : defaultNavigatorType,
@@ -69,6 +70,7 @@ export default class ViroSample extends Component {
   //
   componentWillUnmount() {
     navigator.geolocation.clearWatch(this.watchID);
+
   }
 
 
@@ -156,8 +158,8 @@ watchCoordinates = () =>{
         longitude: position.coords.longitude,
         error: null,
       });
-      var positionStringify = JSON.stringify(position)
-      alert(positionStringify)
+    
+
     },
     (error) => this.setState({ error: error.message }),
     { enableHighAccuracy: true, timeout: 20000, maximumAge: 10000, distanceFilter: 1 },
