@@ -8,8 +8,6 @@
  */
 
 import React, { Component } from 'react';
-import DeviceEventEmitter from 'react-native';
-import ReactNativeHeading from 'react-native-heading';
 import {
   AppRegistry,
   Alert,
@@ -63,32 +61,15 @@ export default class ViroSample extends Component {
     this._exitViro = this._exitViro.bind(this);
   }
 
-  componentDidMount() {
-    ReactNativeHeading.start(1)
-  	.then(didStart => {
-  		this.setState({
-  			headingIsSupported: didStart,
-  		})
-  	})
 
-    DeviceEventEmitter.addListener('headingUpdated', data => {
-    	alert('New heading is:', data.heading);
-    });
 
+  componentDidMount(){
+    this.watchCoordinates()
   }
-  componentWillUnmount() {
-  	ReactNativeHeading.stop();
-  	DeviceEventEmitter.removeAllListeners('headingUpdated');
-  }
-
-
-  // componentDidMount(){
-  //   this.watchCoordinates()
-  // }
   //
-  // componentWillUnmount() {
-  //   navigator.geolocation.clearWatch(this.watchID);
-  // }
+  componentWillUnmount() {
+    navigator.geolocation.clearWatch(this.watchID);
+  }
 
 
   // Replace this function with the contents of _getVRNavigator() or _getARNavigator()
@@ -168,17 +149,18 @@ export default class ViroSample extends Component {
 
 
 watchCoordinates = () =>{
-  this.watchId = navigator.geolocation.getCurrentPosition(
+  this.watchId = navigator.geolocation.watchPosition(
     (position) => {
       this.setState({
         latitude: position.coords.latitude,
         longitude: position.coords.longitude,
         error: null,
       });
-      alert(position.coords.heading)
+      var positionStringify = JSON.stringify(position)
+      alert(positionStringify)
     },
     (error) => this.setState({ error: error.message }),
-    { enableHighAccuracy: true, timeout: 20000, maximumAge: 1000, distanceFilter: 1 },
+    { enableHighAccuracy: true, timeout: 20000, maximumAge: 10000, distanceFilter: 1 },
   );
 }
 
