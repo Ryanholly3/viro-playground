@@ -64,15 +64,6 @@ export default class ViroSample extends Component {
 
 
 
-  componentDidMount(){
-    this.watchCoordinates()
-  }
-  //
-  componentWillUnmount() {
-    navigator.geolocation.clearWatch(this.watchID);
-
-  }
-
 
   // Replace this function with the contents of _getVRNavigator() or _getARNavigator()
   // if you are building a specific type of experience.
@@ -150,21 +141,7 @@ export default class ViroSample extends Component {
 
 
 
-watchCoordinates = () =>{
-  this.watchId = navigator.geolocation.watchPosition(
-    (position) => {
-      this.setState({
-        latitude: position.coords.latitude,
-        longitude: position.coords.longitude,
-        error: null,
-      });
-    
 
-    },
-    (error) => this.setState({ error: error.message }),
-    { enableHighAccuracy: true, timeout: 20000, maximumAge: 10000, distanceFilter: 1 },
-  );
-}
 
 
 }

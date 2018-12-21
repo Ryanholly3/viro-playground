@@ -8,6 +8,8 @@ import {
   ViroARScene,
   ViroConstants,
   ViroParticleEmitter,
+  ViroGeometry,
+  ViroSphere,
   ViroText,
   ViroMaterials,
   ViroBox,
@@ -27,12 +29,26 @@ export default class HelloWorldSceneAR extends Component {
     // Set initial state here
     this.state = {
       text : "Initializing AR...",
-      pos: -1,
-      objs: {},
+      phoneLat: 0,
+      phoneLong: 0,
+      phoneHeading: 0,
+      objLat: 39.757611,
+      objLong: -105.006963,
+      objX: 0,
+      objY: 0,
+      objZ: 0,
     };
 
     // bind 'this' to functions
     this._onInitialized = this._onInitialized.bind(this);
+  }
+
+  componentDidMount(){
+    this.watchCoordinates()
+  }
+  //
+  componentWillUnmount() {
+    navigator.geolocation.clearWatch(this.watchID);
   }
 
 
@@ -40,12 +56,14 @@ export default class HelloWorldSceneAR extends Component {
 
     return (
       <ViroARScene onTrackingUpdated={this._onInitialized} >
+        <ViroAmbientLight color="#FFFFFF" />
         <Viro3DObject source={require('./res/doctor_mario/scene.gltf')}
-           type="GLTF"
-           position={[0, -5, -10]}
-           rotation={[0,0,0]}
-           scale={[0.3, 0.3, 0.3]}
-        />
+          type="GLTF"
+          position={[this.state.objX, this.state.objY, this.state.objZ]}
+          rotation={[0,0,0]}
+          scale={[0.2, 0.2, 0.2]}
+          onClick={this._onClick}
+       />
       </ViroARScene>
     );
   }
@@ -81,7 +99,7 @@ export default class HelloWorldSceneAR extends Component {
     }
   }
 
-  latLongToDistanceAway(lat1, lat2, long1, long2){
+  latLongToDistanceAway = (lat1, long1, lat2, long2) =>{
     var radiusEarth = 6371e3;
 
     //convert degrees to radians
@@ -98,7 +116,7 @@ export default class HelloWorldSceneAR extends Component {
     return d
   }
 
-  bearingPhoneToObj(lat1, lat2, long1, long2){
+  bearingPhoneToObj = (lat1, long1, lat2, long2) =>{
     //sum with heading to determine virtual angle from phone heading to obj
 
     //convert degrees to radians
@@ -118,11 +136,49 @@ export default class HelloWorldSceneAR extends Component {
   }
 
   _onClick = () => {
-    var answer = this.bearingPhoneToObj(33.4484, 39.7392, 112.0740, 104.9903)
+    var answer = this.bearingPhoneToObj(39.7575767, -105.0069728, 39.757611, -105.006963)
     alert(answer)
     // this.setState({
     //   pos: Math.random()*(-5)
     // })
+  }
+
+  watchCoordinates = () =>{
+    this.watchId = navigator.geolocation.watchPosition(
+      (position) => {
+        this.setState({
+          phoneLat: position.coords.latitude,
+          phonelong: position.coords.longitude,
+        });
+
+        this._mapVirtual(position.coords.latitude, position.coords.longitude, this.state.phoneHeading, this.state.objLat, this.state.objLong)
+        // could pass position.coords.latitude,long,heading into this if dont want to wait for state to update
+      },
+      (error) => this.setState({ error: error.message }),
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 10000, distanceFilter: 1 },
+    );
+  }
+
+  _mapVirtual = async (phoneLat, phoneLong, phoneHeading, objLat, objLong) => {
+    let distBetweenPhoneObj = await this.latLongToDistanceAway(phoneLat, phoneLong, objLat, objLong)
+    let headingPhoneToObj = await this.bearingPhoneToObj(phoneLat, phoneLong, objLat, objLong)
+
+    //convert to 0-360 range, convert to radians
+    let virtualDegrees360 = ((headingPhoneToObj - phoneHeading) + 360) % 360
+    let virtualRadians = (virtualDegrees360 * Math.PI)/180
+
+    let objZ = Math.cos(virtualRadians) * distBetweenPhoneObj
+    let objX = Math.sin(virtualRadians) * distBetweenPhoneObj
+
+    let display = `phoneLat: ${phoneLat}, phoneLong: ${phoneLong}, objLat: ${objLat}, objLong: ${objLong},
+    distBetweenPhoneObj: ${distBetweenPhoneObj}, headingPhoneToObj: ${headingPhoneToObj}, virtualRadians: ${virtualRadians},
+    objX: ${objX}, objZ: ${objZ}`
+    alert(display)
+
+    this.setState({
+      objX: objX,
+      objZ: objZ,
+    })
   }
 
 
