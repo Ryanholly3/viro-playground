@@ -32,8 +32,8 @@ export default class HelloWorldSceneAR extends Component {
       phoneLat: 0,
       phoneLong: 0,
       phoneHeading: 0,
-      objLat: 39.757611,
-      objLong: -105.006963,
+      objLat: 39.75760577,
+      objLong: -105.00698648,
       objX: 0,
       objY: 0,
       objZ: 0,
@@ -167,7 +167,7 @@ export default class HelloWorldSceneAR extends Component {
     let virtualDegrees360 = ((headingPhoneToObj - phoneHeading) + 360) % 360
     let virtualRadians = (virtualDegrees360 * Math.PI)/180
 
-    let objZ = Math.cos(virtualRadians) * distBetweenPhoneObj
+    let objZ = (Math.cos(virtualRadians) * distBetweenPhoneObj) * -1;
     let objX = Math.sin(virtualRadians) * distBetweenPhoneObj
 
     let display = `phoneLat: ${phoneLat}, phoneLong: ${phoneLong}, objLat: ${objLat}, objLong: ${objLong},
