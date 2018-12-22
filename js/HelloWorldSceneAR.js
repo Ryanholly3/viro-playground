@@ -32,11 +32,12 @@ export default class HelloWorldSceneAR extends Component {
       phoneLat: 0,
       phoneLong: 0,
       phoneHeading: 0,
-      objLat: 39.75760577,
-      objLong: -105.00698648,
+      objLat: 39.6811342,
+      objLong: -104.9576626,
       objX: 0,
       objY: 0,
       objZ: 0,
+      mapped: false,
     };
 
     // bind 'this' to functions
@@ -59,7 +60,7 @@ export default class HelloWorldSceneAR extends Component {
         <ViroAmbientLight color="#FFFFFF" />
         <Viro3DObject source={require('./res/doctor_mario/scene.gltf')}
           type="GLTF"
-          position={[this.state.objX, this.state.objY, this.state.objZ]}
+          position={[0, 0, -5]}
           rotation={[0,0,0]}
           scale={[0.2, 0.2, 0.2]}
           onClick={this._onClick}
@@ -151,7 +152,7 @@ export default class HelloWorldSceneAR extends Component {
           phonelong: position.coords.longitude,
         });
 
-        this._mapVirtual(position.coords.latitude, position.coords.longitude, this.state.phoneHeading, this.state.objLat, this.state.objLong)
+        // this._mapVirtual(position.coords.latitude, position.coords.longitude, this.state.phoneHeading, this.state.objLat, this.state.objLong)
         // could pass position.coords.latitude,long,heading into this if dont want to wait for state to update
       },
       (error) => this.setState({ error: error.message }),
@@ -159,7 +160,12 @@ export default class HelloWorldSceneAR extends Component {
     );
   }
 
+  _virtual = () =>{
+
+  }
+
   _mapVirtual = async (phoneLat, phoneLong, phoneHeading, objLat, objLong) => {
+
     let distBetweenPhoneObj = await this.latLongToDistanceAway(phoneLat, phoneLong, objLat, objLong)
     let headingPhoneToObj = await this.bearingPhoneToObj(phoneLat, phoneLong, objLat, objLong)
 
