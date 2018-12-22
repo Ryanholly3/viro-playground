@@ -31,9 +31,9 @@ export default class HelloWorldSceneAR extends Component {
       text : "Initializing AR...",
       phoneLat: 0,
       phoneLong: 0,
-      phoneHeading: 0,
-      objLat: 39.6811342,
-      objLong: -104.9576626,
+      phoneObjAngleRad: 0,
+      objLat: 39.68106649,
+      objLong: -104.95752880,
       objX: 0,
       objY: 0,
       objZ: 0,
@@ -45,11 +45,7 @@ export default class HelloWorldSceneAR extends Component {
   }
 
   componentDidMount(){
-    this.watchCoordinates()
-  }
-  //
-  componentWillUnmount() {
-    navigator.geolocation.clearWatch(this.watchID);
+    this.getInitialCoordinates()
   }
 
 
@@ -60,7 +56,7 @@ export default class HelloWorldSceneAR extends Component {
         <ViroAmbientLight color="#FFFFFF" />
         <Viro3DObject source={require('./res/doctor_mario/scene.gltf')}
           type="GLTF"
-          position={[0, 0, -5]}
+          position={[this.state.objX, 0, this.state.objZ]}
           rotation={[0,0,0]}
           scale={[0.2, 0.2, 0.2]}
           onClick={this._onClick}
@@ -118,7 +114,6 @@ export default class HelloWorldSceneAR extends Component {
   }
 
   bearingPhoneToObj = (lat1, long1, lat2, long2) =>{
-    //sum with heading to determine virtual angle from phone heading to obj
 
     //convert degrees to radians
     var lat1r = (lat1 * Math.PI)/180
@@ -127,13 +122,14 @@ export default class HelloWorldSceneAR extends Component {
     var long2r = (long2 * Math.PI)/180
 
     //difference in long in radians
-    var dlong = (long2 - long1) * Math.PI / 180
+    var dlong = ((long2 - long1) * Math.PI) / 180
 
     var y = Math.sin(dlong) * Math.cos(lat2r);
-    var x = Math.cos(lat1r) * Math.sin(lat2r) - Math.sin(lat1r) * Math.cos(lat2r) * Math.cos(dlong);
+    var x = (Math.cos(lat1r) * Math.sin(lat2r)) - (Math.sin(lat1r) * Math.cos(lat2r) * Math.cos(dlong));
     var brng = (Math.atan2(y, x) * 180) / Math.PI
     //returned in degrees between -180 and +180
-    return brng
+    var result = (brng + 360) % 360
+    return result
   }
 
   _onClick = () => {
@@ -144,46 +140,38 @@ export default class HelloWorldSceneAR extends Component {
     // })
   }
 
-  watchCoordinates = () =>{
-    this.watchId = navigator.geolocation.watchPosition(
+  getInitialCoordinates = () =>{
+    navigator.geolocation.getCurrentPosition(
       (position) => {
-        this.setState({
-          phoneLat: position.coords.latitude,
-          phonelong: position.coords.longitude,
-        });
-
-        // this._mapVirtual(position.coords.latitude, position.coords.longitude, this.state.phoneHeading, this.state.objLat, this.state.objLong)
+        this._mapVirtual(position.coords.latitude, position.coords.longitude, this.state.objLat, this.state.objLong)
         // could pass position.coords.latitude,long,heading into this if dont want to wait for state to update
       },
       (error) => this.setState({ error: error.message }),
-      { enableHighAccuracy: true, timeout: 20000, maximumAge: 10000, distanceFilter: 1 },
+      { enableHighAccuracy: true, timeout: 20000, maximumAge: 10000 },
     );
   }
 
-  _virtual = () =>{
 
-  }
-
-  _mapVirtual = async (phoneLat, phoneLong, phoneHeading, objLat, objLong) => {
+  _mapVirtual = async (phoneLat, phoneLong, objLat, objLong) => {
 
     let distBetweenPhoneObj = await this.latLongToDistanceAway(phoneLat, phoneLong, objLat, objLong)
     let headingPhoneToObj = await this.bearingPhoneToObj(phoneLat, phoneLong, objLat, objLong)
 
-    //convert to 0-360 range, convert to radians
-    let virtualDegrees360 = ((headingPhoneToObj - phoneHeading) + 360) % 360
-    let virtualRadians = (virtualDegrees360 * Math.PI)/180
+    let radiansPhoneToObj = (headingPhoneToObj * Math.PI) / 180
 
-    let objZ = (Math.cos(virtualRadians) * distBetweenPhoneObj) * -1;
-    let objX = Math.sin(virtualRadians) * distBetweenPhoneObj
+    let objZ = -1 * (Math.cos(radiansPhoneToObj) * distBetweenPhoneObj)
+    let objX = Math.sin(radiansPhoneToObj) * distBetweenPhoneObj
 
-    let display = `phoneLat: ${phoneLat}, phoneLong: ${phoneLong}, objLat: ${objLat}, objLong: ${objLong},
-    distBetweenPhoneObj: ${distBetweenPhoneObj}, headingPhoneToObj: ${headingPhoneToObj}, virtualRadians: ${virtualRadians},
-    objX: ${objX}, objZ: ${objZ}`
+    let display = ` ${phoneLat} ${phoneLong} distBetweenPhoneObj: ${distBetweenPhoneObj}, headingPhoneToObj:
+    ${headingPhoneToObj}, objX: ${objX}, objZ: ${objZ}`
     alert(display)
 
     this.setState({
       objX: objX,
       objZ: objZ,
+      phoneLat: phoneLat,
+      phoneLong: phoneLong,
+      phoneObjAngleRad: radiansPhoneToObj,
     })
   }
 
